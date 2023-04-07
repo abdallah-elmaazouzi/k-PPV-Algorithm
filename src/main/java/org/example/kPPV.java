@@ -1,6 +1,7 @@
 package org.example;
 
 import java.io.*;
+import java.util.Arrays;
 
 /**
  * @author hubert.cardot
@@ -58,6 +59,46 @@ public class kPPV {
     /*
     *  déterminer la classe la plus proche en se basant sur les distances calculées entre une instance de test et toutes les instances de l'ensemble d'apprentissage.
     * */
+    private static int findclass1(Double distances[], int k) {
+        // initialize arrays to hold nearest classes and indices of k nearest neighbors
+        Integer[] indices = new Integer[k];
+        int[] nearestClasses = new int[k];
+        // initialize nearestClasses and indices arrays with the first k values
+        for (int i = 0; i < k; i++) {
+            indices[i] = i;
+            nearestClasses[i] = indices[i] / NbExLearning;
+        }
+        // find the k nearest neighbors by updating the indices array and sorting it
+        // based on distance
+
+        for (int i = k; i < distances.length; i++) {
+            double dist = distances[i];
+            if (dist < distances[indices[k - 1]]) {
+                indices[k - 1] = i;
+                // sort indices array based on distance using a lambda expression
+                Arrays.sort(indices, (a, b) -> Double.compare(distances[a], distances[b]));
+                // update nearestClasses array based on new indices
+                for (int j = 0; j < k; j++) {
+                    nearestClasses[j] = indices[j] / NbExLearning;
+                }
+            }
+        }
+        // count the number of occurrences of each class in nearestClasses array
+        int[] count = new int[NbClasses];
+        for (int c : nearestClasses) {
+            count[c]++;
+        }
+        // find the class with the highest count and return its index
+        int maxIndex = 0;
+        for (int i = 1; i < NbClasses; i++) {
+            if (count[i] > count[maxIndex]) {
+                maxIndex = i;
+            }
+        }
+
+        return maxIndex;
+    }
+
     private static int findClass(Double distances[]){
         // initilization
         Double min_distance = distances[0];
