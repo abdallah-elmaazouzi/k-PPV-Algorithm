@@ -2,13 +2,14 @@ package org.example;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * @author hubert.cardot
  */
 public class kPPV {
 	//General variables for dealing with Iris data (UCI repository)
-	// NbEx: number of data per class in dataset 
+	// NbEx: number of data per class in dataset
 	// NbClasses: Number of classes to recognize
 	// NbFeatures: Dimensionality of dataset
 	// NbExLearning: Number of exemples per class used for learning (there are the first ones in data storage for each class)
@@ -19,7 +20,7 @@ public class kPPV {
     public static void main(String[] args) {
         System.out.println("Starting kPPV");
         ReadFile();
-        
+
         //X is an exemple to classify (to take into data -test examples-)
         Double X[] = new Double[NbFeatures];
         // distances: table to store all distances between the given exemple X and all exemples in learning set, using ComputeDistances
@@ -28,13 +29,14 @@ public class kPPV {
         //To be done
         X[0] = data[0][27][0];X[1] = data[0][27][1];X[2] = data[0][27][2];X[3] = data[0][27][3];
         ComputeDistances(X, distances);
-        int X_predicted_class = findClass(distances);
-        System.out.println(X_predicted_class);
+        //int X_predicted_class = findClass(distances);
+        //System.out.println(X_predicted_class);
 
         evaluation();
+        //findClass4(distances, 3);
 
     }
-   
+
 
     /*
     * calculer les distances euclidiennes entre un point de données d'entrée x et tous les exemples d'un ensemble d'apprentissage
@@ -59,15 +61,17 @@ public class kPPV {
     /*
     *  déterminer la classe la plus proche en se basant sur les distances calculées entre une instance de test et toutes les instances de l'ensemble d'apprentissage.
     * */
-    private static int findclass1(Double distances[], int k) {
+    private static int findClass1(Double distances[], int k) {
         // initialize arrays to hold nearest classes and indices of k nearest neighbors
         Integer[] indices = new Integer[k];
         int[] nearestClasses = new int[k];
+
         // initialize nearestClasses and indices arrays with the first k values
         for (int i = 0; i < k; i++) {
             indices[i] = i;
             nearestClasses[i] = indices[i] / NbExLearning;
         }
+
         // find the k nearest neighbors by updating the indices array and sorting it
         // based on distance
 
@@ -95,6 +99,48 @@ public class kPPV {
                 maxIndex = i;
             }
         }
+        return maxIndex;
+    }
+
+    private static int findClass4(Double distances[], int k){
+
+        // on initialise nos variables
+        int[] nearestClasses = new int[k];
+        int[] indices = new int[k];
+
+        // trier notre table et sélectionner les k min distances.
+        Double[] copy_distances = Arrays.copyOf(distances, 75);
+        Arrays.sort(copy_distances);
+        Double[] kDistances = Arrays.copyOfRange(copy_distances, 0,k);
+
+        int index=0;
+        for(Double v:kDistances){
+            for(int i=0; i<distances.length; i++){
+                if(distances[i].equals(v)){
+                    indices[index] = i;
+                    nearestClasses[index]=i/NbExLearning;
+                    index++;
+                    break;
+                }
+            }
+            if(nearestClasses.length==3){
+                break;
+            }
+        }
+
+        // count the number of occurrences of each class in nearestClasses array
+        int[] count = new int[NbClasses];
+        for (int c : nearestClasses) {
+            count[c]++;
+        }
+
+        // find the class with the highest count and return its index
+        int maxIndex = 0;
+        for (int i = 1; i < NbClasses; i++) {
+            if (count[i] > count[maxIndex]) {
+                maxIndex = i;
+            }
+        }
 
         return maxIndex;
     }
@@ -111,7 +157,11 @@ public class kPPV {
                 nearest_index = i;
             }
         }
-        return (nearest_index >= 0 && nearest_index < 25) ? 0 : (nearest_index >= 25 && nearest_index < 50) ? 1 : 2;
+        return nearest_index/NbExLearning; //(nearest_index >= 0 && nearest_index < 25) ? 0 : (nearest_index >= 25 && nearest_index < 50) ? 1 : 2;
+    }
+
+    private static void crossValidation(){
+
     }
 
     /*
@@ -122,23 +172,24 @@ public class kPPV {
         int prediction[] = new int[NbClasses*NbExTesting];
 
         int[][] confusionMatrix = new int[NbClasses][NbClasses];
+        int correctPredictions = 0;
 
         int index = 0;
         for(int i=0; i<NbClasses; i++){
             for(int j=NbExLearning; j<NbEx; j++){
                 Double X[] = data[i][j];
                 Double distances[] = new Double[NbClasses*NbExTesting];
-
-                /*for (int k = 0; k < NbFeatures; k++) {
-                    X[k] =  data[i][j][k];
-                }*/
-
                 ComputeDistances(X, distances);
-                int X_predicted_class = findClass(distances);
-                prediction[index++] = X_predicted_class;
+                int X_predicted_class = findClass4(distances, 5);
+                prediction[index] = X_predicted_class;
                 int real_class = i;
 
                 confusionMatrix[real_class][X_predicted_class]++;
+                index++;
+
+                if (X_predicted_class == i) {
+                    correctPredictions++;
+                }
             }
         }
 
@@ -151,11 +202,16 @@ public class kPPV {
         }
 
         // Calcul du taux de reconnaissance
+        double recognitionRate = (double) correctPredictions / (NbClasses * (NbEx - NbExLearning));
+        /*
+
         double recognitionRate = 0.0;
         for (int i = 0; i < NbClasses; i++) {
             recognitionRate += confusionMatrix[i][i];
         }
         recognitionRate /= NbClasses*NbExTesting;
+
+         */
         System.out.println("recognitionRate: " + recognitionRate );
     }
 
@@ -163,7 +219,7 @@ public class kPPV {
 	//1 line -> 1 exemple
 	//50 first lines are 50 exemples of class 0, next 50 of class 1 and 50 of class 2
     private static void ReadFile() {
-        
+
         String line, subPart;
         int classe=0, n=0;
         try {
