@@ -2,7 +2,6 @@ package org.example;
 
 import java.io.*;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * @author hubert.cardot
@@ -34,6 +33,7 @@ public class kPPV {
 
         evaluation();
         //findClass4(distances, 3);
+        System.out.println("Accuracy  with cross validation is: " + crossValidation___(5, 5));
 
     }
 
@@ -160,8 +160,146 @@ public class kPPV {
         return nearest_index/NbExLearning; //(nearest_index >= 0 && nearest_index < 25) ? 0 : (nearest_index >= 25 && nearest_index < 50) ? 1 : 2;
     }
 
-    private static void crossValidation(){
+    private static double crossValidation___(int k, int nFolds){
+        double accuracy = 0;
+        int foldSize = NbExLearning/nFolds;
 
+        for(int fold=0; fold<nFolds; fold++){
+            int testStart = fold*foldSize;
+            int testEnd = testStart  + foldSize;
+            double correct=0;
+
+
+            for(int i=0; i<NbClasses; i++) {
+                for (int j = testStart; j < testEnd; j++) {
+                    Double[] example = data[i][j];
+                    int trueClass = i;
+
+                    Double[] distances = new Double[NbClasses * (NbExLearning - foldSize)];
+                    ComputeDistances___(example, distances, testStart, testEnd);
+                    distances[57] = 0.0;
+                    distances[58] = 1.0;
+                    distances[59] = 2.0;
+                    // Find the k nearest neighbors
+                    int predictedClass = findClass___(distances, k);
+
+                    // Check if prediction is correct
+                    if (predictedClass == trueClass) {
+                        correct++;
+                    }
+                }
+            }
+
+            // Compute accuracy for this fold
+            double foldAccuracy = correct / (foldSize*NbClasses);
+            accuracy += foldAccuracy;
+        }
+
+        // Compute overall accuracy
+        accuracy /= nFolds;
+        return accuracy;
+    }
+
+    private static void ComputeDistances___(Double x[], Double distances[], int testStart, int testEnd) {
+        //---compute the distance between an input data x to test and all examples in training set (in data)
+        int index = 0;
+        for(int i=0; i<NbClasses; i++){
+            for(int j=0; j<NbExLearning; j++){
+                if (j<testStart || j >= testEnd) {
+                    // calculate the euclidian distance  between x and each element of training set
+                    Double distance = 0.0;
+                    for (int k = 0; k < NbFeatures; k++) {
+                        distance += Math.pow(data[i][j][k] - x[k], 2);
+                    }
+                    // add to distances array
+                    distances[index] = Math.sqrt(distance);
+                    index++;
+                }
+            }
+        }
+    }
+    private static int findClass___(Double distances[], int k){
+
+        // on initialise nos variables
+        int[] nearestClasses = new int[k];
+        int[] indices = new int[k];
+
+        // trier notre table et sélectionner les k min distances.
+        Double[] copy_distances = Arrays.copyOf(distances, 60);
+        Arrays.sort(copy_distances);
+        Double[] kDistances = Arrays.copyOfRange(copy_distances, 0,k);
+
+        int index=0;
+        for(Double v:kDistances){
+            for(int i=0; i<distances.length; i++){
+                if(distances[i].equals(v)){
+                    indices[index] = i;
+                    nearestClasses[index]=i/NbExLearning;
+                    index++;
+                    break;
+                }
+            }
+            if(nearestClasses.length==3){
+                break;
+            }
+        }
+
+        // count the number of occurrences of each class in nearestClasses array
+        int[] count = new int[NbClasses];
+        for (int c : nearestClasses) {
+            count[c]++;
+        }
+
+        // find the class with the highest count and return its index
+        int maxIndex = 0;
+        for (int i = 1; i < NbClasses; i++) {
+            if (count[i] > count[maxIndex]) {
+                maxIndex = i;
+            }
+        }
+
+        return maxIndex;
+    }
+    public static double crossValidation_(int k, int nFolds) {
+        double accuracy = 0;
+        int foldSize = NbEx / nFolds;
+
+        // Randomly shuffle the data
+        //shuffleData();
+
+        // Loop over each fold
+        for (int fold = 0; fold < nFolds; fold++) {
+            int testStart = fold * foldSize;
+            int testEnd = testStart + foldSize;
+            double correct = 0;
+
+            // Loop over each example in the test set
+            for (int i = testStart; i < testEnd; i++) {
+                // Get the example and its true class
+                Double[] example = data[i / NbExLearning][i % NbExLearning];
+                int trueClass = i / NbExLearning;
+
+                // Compute distances to all training examples
+                Double[] distances = new Double[NbClasses * NbExLearning];
+                ComputeDistances(example, distances);
+
+                // Find the k nearest neighbors
+                int predictedClass = findClass4(distances, k);
+
+                // Check if prediction is correct
+                if (predictedClass == trueClass) {
+                    correct++;
+                }
+            }
+
+            // Compute accuracy for this fold
+            double foldAccuracy = correct / foldSize;
+            accuracy += foldAccuracy;
+        }
+
+        // Compute overall accuracy
+        accuracy /= nFolds;
+        return accuracy;
     }
 
     /*
@@ -180,7 +318,7 @@ public class kPPV {
                 Double X[] = data[i][j];
                 Double distances[] = new Double[NbClasses*NbExTesting];
                 ComputeDistances(X, distances);
-                int X_predicted_class = findClass4(distances, 5);
+                int X_predicted_class = findClass4(distances, 30);
                 prediction[index] = X_predicted_class;
                 int real_class = i;
 
