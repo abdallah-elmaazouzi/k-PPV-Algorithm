@@ -33,7 +33,7 @@ public class kPPV {
 
         evaluation();
         //findClass4(distances, 3);
-        System.out.println("Accuracy  with cross validation is: " + crossValidation___(5, 5));
+        System.out.println("Accuracy  with cross validation is: " + crossValidation___(5, 10));
 
     }
 
@@ -177,9 +177,7 @@ public class kPPV {
 
                     Double[] distances = new Double[NbClasses * (NbExLearning - foldSize)];
                     ComputeDistances___(example, distances, testStart, testEnd);
-                    distances[57] = 0.0;
-                    distances[58] = 1.0;
-                    distances[59] = 2.0;
+
                     // Find the k nearest neighbors
                     int predictedClass = findClass___(distances, k);
 
