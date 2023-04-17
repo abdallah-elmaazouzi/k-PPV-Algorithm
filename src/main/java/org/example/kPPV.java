@@ -5,6 +5,8 @@ import java.util.Arrays;
 
 /**
  * @author hubert.cardot
+ * @author Amine.ELACHAR
+ * @author Abdallah.EL MAAZOUZI
  */
 public class kPPV {
 	//General variables for dealing with Iris data (UCI repository)
@@ -25,16 +27,17 @@ public class kPPV {
         //initialiser le vecteur x [5.9,3.0,5.1,1.8]
         x[0]=5.9;x[1]=3.0;x[2]=5.1;x[3]=1.8;
 
-        // distances: table to store all distances between the given exemple X and all exemples in learning set, using ComputeDistances
+        // distances: table pour enregistrer la distance entre notre exemple X et les exemples d'apprentissage de notre set en utilisant la méthode  ComputeDistances
         Double[] distances = new Double[NbClasses*NbExLearning];
         ComputeDistances(x, distances);
+        //rechercher dans notre tableau la distance minimale et retourner ça classe 1-PPV
         int predicted_class = findClass(distances)+1;
-        System.out.println("La classe de l'exemple prédit est:"+ predicted_class+". En utilisant 1PPv");
-        
+        System.out.println("En utilisant 1PPv"+"La classe de l'exemple prédit est:"+ predicted_class);
+
         //En utilisant K-ppv
         int predicted_class_kppv = findClassBasedKNearestNeighbours(distances,5)+1;
 
-        System.out.println("La classe de l'exemple prédit est:"+ predicted_class_kppv+". En utilisant k-PPv");
+        System.out.println("En utilisant k-PPv"+"La classe de l'exemple prédit est:"+ predicted_class_kppv);
 
 
         // Evaluer notre modèle en appelant la fonction evaluation
