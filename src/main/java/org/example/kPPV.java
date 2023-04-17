@@ -22,29 +22,38 @@ public class kPPV {
         System.out.println("Starting kPPV");
         ReadFile();
 
-        //X is an exemple to classify (to take into data -test examples-)
-        Double x[]=new Double[4] ;
-        //initialiser le vecteur x [5.9,3.0,5.1,1.8]
-        x[0]=5.9;x[1]=3.0;x[2]=5.1;x[3]=1.8;
+        ///////////////////////////////////// Test 1: 1-PPV /////////////////////////////////////////
+        System.out.println("************************ Test 1 - 1PPV *************************** ");
+        // X is an exemple to classify (to take into data -test examples-)
+        Double X[] = new Double[4] ;
+        // Initialiser le vecteur
+        X[0]=5.9; X[1]=3.0; X[2]=5.1; X[3]=1.8;
 
-        // distances: table pour enregistrer la distance entre notre exemple X et les exemples d'apprentissage de notre set en utilisant la méthode  ComputeDistances
+        // Initialiser la table distances
         Double[] distances = new Double[NbClasses*NbExLearning];
-        ComputeDistances(x, distances);
-        //rechercher dans notre tableau la distance minimale et retourner ça classe 1-PPV
-        int predicted_class = findClass(distances)+1;
-        System.out.println("En utilisant 1PPv"+"La classe de l'exemple prédit est:"+ predicted_class);
+        ComputeDistances(X, distances);
 
-        //En utilisant K-ppv
-        int predicted_class_kppv = findClassBasedKNearestNeighbours(distances,5)+1;
+        // Prédire La class pour notre exemple X en appelant la méthode findClass basée sur 1-PPV
+        int predicted_class = findClass(distances);
+        System.out.println(" ---> En utilisant 1PPv, la classe prédit pour l'exemple X est:" + predicted_class + "\n");
 
-        System.out.println("En utilisant k-PPv"+"La classe de l'exemple prédit est:"+ predicted_class_kppv);
+        ///////////////////////////////////// Test 2: k-PPV ///////////////////////////////////////
+        System.out.println("************************ Test 2 - k-PPV *************************** ");
+        // Prédire La class pour notre exemple X en appelant la méthode findClass basée sur k-PPV
+        int predicted_class_kppv = findClassBasedKNearestNeighbours(distances,5);
+
+        System.out.println(" ---> En utilisant k-PPv, la classe prédit pour l'exemple X est:" + predicted_class_kppv + "\n");
 
 
+        ///////////////////////////////////// Evaluation /////////////////////////////////////////
+        System.out.println("************************ Evaluation de notre modèle sur l'ensemble de test *************************** ");
         // Evaluer notre modèle en appelant la fonction evaluation
         evaluation();
 
+        ///////////////////////////////////// Cross Validation ///////////////////////////
         // Afficher le résultat de l'accuracy donnée par la cross validation
-        System.out.println("Accuracy given by cross validation is: " + crossValidation___(5, 5));
+        System.out.println("************************ La Cross Validation *************************** ");
+        System.out.println(" - Accuracy given by cross-validation is: " + crossValidation___(5, 15) + "\n");
     }
 
 
@@ -74,7 +83,6 @@ public class kPPV {
      * @return
      */
     private static int findClass(Double distances[]) {
-
         double min = distances[0];
         int indice = 0;
         for (int i = 1; i < distances.length; i++) {
@@ -84,9 +92,7 @@ public class kPPV {
             } else {
                 continue;
             }
-
         }
-
         return indice / NbExLearning;
     }
 
