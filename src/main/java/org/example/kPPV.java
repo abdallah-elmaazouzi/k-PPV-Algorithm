@@ -52,8 +52,10 @@ public class kPPV {
 
         ///////////////////////////////////// Cross Validation ///////////////////////////
         // Afficher le résultat de l'accuracy donnée par la cross validation
+        int k = 5;
+        int nFolds = 15;
         System.out.println("************************ La Cross Validation *************************** ");
-        System.out.println(" - Accuracy given by cross-validation is: " + crossValidation___(5, 15) + "\n");
+        System.out.println(" - Accuracy given by cross-validation is (Pour k=" +k + " et" + " nFolds=" + nFolds +") : " + crossValidation___(k, nFolds) + "\n");
     }
 
 
