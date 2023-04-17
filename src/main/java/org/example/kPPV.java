@@ -21,12 +21,21 @@ public class kPPV {
         ReadFile();
 
         //X is an exemple to classify (to take into data -test examples-)
-        Double X[] = new Double[NbFeatures];
+        Double x[]=new Double[4] ;
+        //initialiser le vecteur x [5.9,3.0,5.1,1.8]
+        x[0]=5.9;x[1]=3.0;x[2]=5.1;x[3]=1.8;
+
         // distances: table to store all distances between the given exemple X and all exemples in learning set, using ComputeDistances
-        Double distances[] = new Double[NbClasses*NbExLearning];
+        Double[] distances = new Double[NbClasses*NbExLearning];
+        ComputeDistances(x, distances);
+        int predicted_class = findClass(distances)+1;
+        System.out.println("La classe de l'exemple prédit est:"+ predicted_class+". En utilisant 1PPv");
+        
+        //En utilisant K-ppv
+        int predicted_class_kppv = findClassBasedKNearestNeighbours(distances,5)+1;
 
+        System.out.println("La classe de l'exemple prédit est:"+ predicted_class_kppv+". En utilisant k-PPv");
 
-        // To be done
 
         // Evaluer notre modèle en appelant la fonction evaluation
         evaluation();
@@ -54,6 +63,28 @@ public class kPPV {
                 index++;
             }
         }
+    }
+
+    /***
+     * Trouver la classe d'un point en utilisant la méthode du plus proche voisin 1-PPV
+     * @param distances
+     * @return
+     */
+    private static int findClass(Double distances[]) {
+
+        double min = distances[0];
+        int indice = 0;
+        for (int i = 1; i < distances.length; i++) {
+            if (distances[i] < min) {
+                min = distances[i];
+                indice = i;
+            } else {
+                continue;
+            }
+
+        }
+
+        return indice / NbExLearning;
     }
 
     /***
@@ -179,10 +210,10 @@ public class kPPV {
     }
 
     /***
-     * Evoluer notre algorithm en calculant les deux indicateurs Matrice de confusion & le Taux de reconnaissance
+     * Evoluer notre algorithme en calculant les deux indicateurs Matrice de confusion & le Taux de reconnaissance
      */
     private static void evaluation(){
-        // initialisation
+        // initialisation de nos variables
         int NbExTesting = NbEx - NbExLearning;
         int prediction[] = new int[NbClasses*NbExTesting];
         int[][] confusionMatrix = new int[NbClasses][NbClasses];
@@ -198,8 +229,10 @@ public class kPPV {
                 // Calcule des distances pour l'exemple X
                 ComputeDistances(X, distances);
 
-                // Faire la prédiction pour l'exmeple X
-                int X_predicted_class = findClassBasedKNearestNeighbours(distances, 30);
+                // Faire la prédiction pour l'exmeple X en se basant sur 30 les plus proches K-PPV ave
+                int X_predicted_class = findClassBasedKNearestNeighbours(distances, 10);
+                //Faire la prédiction pour l'exmeple X en se basant le plus proche voisin 1-PPv
+                //int X_predicted_class = findClass(distances);
                 prediction[index] = X_predicted_class;
                 int real_class = i;
 
@@ -223,7 +256,7 @@ public class kPPV {
 
         // Taux de reconnaissance
         double recognitionRate = (double) correctPredictions / (NbClasses * (NbEx - NbExLearning));
-        System.out.println("recognitionRate: " + recognitionRate );
+        System.out.println("Le taux de reconnaisance: " + recognitionRate );
     }
 
 
@@ -235,7 +268,7 @@ public class kPPV {
         String line, subPart;
         int classe=0, n=0;
         try {
-             BufferedReader fic=new BufferedReader(new FileReader("C:\\Users\\HomePC\\OneDrive\\Documents\\BDMA S1\\ReconaissanceImg\\TP\\Original\\kPPV\\iris.data"));
+             BufferedReader fic=new BufferedReader(new FileReader("src/main/java/org/example/iris.data"));
              while ((line=fic.readLine())!=null) {
                 for(int i=0;i<NbFeatures;i++) {
                     subPart = line.substring(i*NbFeatures, i*NbFeatures+3);
